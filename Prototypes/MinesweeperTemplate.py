@@ -27,7 +27,10 @@ REVEALED_EMPTY = (200, 200, 200)
 REVEALED_NUMBER = (160, 160, 160)
 MINE_RED = (255, 0, 0)
 LABEL_GRAY = (90, 90, 90)
-TRANSPARENT_RED = (255, 155, 155, 180) #RGBA
+
+# Colors (RGBA)
+TRANSPARENT_RED = (255, 155, 155, 180)
+TRANSPARENT_GREEN = (155, 255, 155, 200)
 
 # Minesweeper prototype
 class Minesweeper:
@@ -288,12 +291,13 @@ class Game:
                 screen.blit(text, (win_width // 2 - text.get_width() // 2, win_height // 2 - text.get_height() // 2))
                 pg.display.flip()
             elif self.minesweeper.is_game_won(): # Win
-                screen.fill(WHITE)
+                win_width, win_height = screen.get_size()
+                overlay = pg.Surface((win_width, win_height), pg.SRCALPHA) # Create an overlay surface that allows for transparency
+                overlay.fill(TRANSPARENT_GREEN, (0, win_height // 2 - 30, win_width, 60)) 
+                screen.blit(overlay, (0, 0))
                 text = font.render("You Win!", True, BLACK)
-                screen.blit(text, (150, 200))
+                screen.blit(text, (win_width // 2 - text.get_width() // 2, win_height // 2 - text.get_height() // 2))
                 pg.display.flip()
-                pg.time.wait(2000)
-                break
 
             pg.display.flip()
             clock.tick(60)
