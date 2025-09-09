@@ -36,6 +36,7 @@ class Minesweeper:
         self.width = width
         self.height = height
         self.num_mines = num_mines
+        self.flags_remaining = num_mines
         self.board = [[0 for _ in range(width)] for _ in range(height)]
         self.revealed = [[False for _ in range(width)] for _ in range(height)]
         self.flags = [[False for _ in range(width)] for _ in range(height)]
@@ -103,7 +104,12 @@ class Minesweeper:
         if self.revealed[y][x] or self.game_over:
             return
 
-        self.flags[y][x] = not self.flags[y][x]
+        flag_status = not self.flags[y][x]
+        self.flags[y][x] = flag_status
+
+        self.flags_remaining += -1 if flag_status else 1
+
+
 
     def is_game_over(self):
         """True if loss, false otherwise."""
