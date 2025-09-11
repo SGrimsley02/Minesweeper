@@ -23,6 +23,8 @@ REVEALED_NUMBER = (176, 196, 177)
 MINE_RED = (220,20,60)
 BACKGROUND = (74, 87, 89)
 GENERAL_TEXT = (176, 196, 177)
+TRANSPARENT_RED = (255, 155, 155, 180)
+TRANSPARENT_GREEN = (155, 255, 155, 200)
 
 # Minesweeper prototype
 class Minesweeper:
@@ -83,6 +85,7 @@ class Minesweeper:
 
         # Mine then lose
         if self.board[y][x] == -1:
+            self.reveal_all_mines()
             self.game_over = True
             return
 
@@ -120,6 +123,13 @@ class Minesweeper:
                 else:
                     display_board[y].append("?")
         return display_board
+    
+    #iterates through the board and reveals all squares with mines
+    def reveal_all_mines(self):
+        for y in range(self.height):
+            for x in range(self.width):
+                if self.board[y][x] == -1:
+                    self.revealed[y][x] = True
 
 class Game:
     def __init__(self):
@@ -285,20 +295,22 @@ class Game:
             # TODO: Transparent end screens? Or at least display final board first
             if self.minesweeper.is_game_over(): # Loss
                 screen.fill(BACKGROUND)
-                text = font.render("Game Over", True, GENERAL_TEXT)
-                text_rect = text.get_rect(center=(w // 2, h // 2))
-                screen.blit(text, text_rect)
+                win_width, win_height = screen.get_size()
+                overlay = pg.Surface((win_width, win_height), pg.SRCALPHA) # Create an overlay surface that allows for transparency
+                overlay.fill(TRANSPARENT_RED, (0, win_height // 2 - 30, win_width, 60)) 
+                screen.blit(overlay, (0, 0))
+                text = font.render("Game Over", True, BLACK)
+                screen.blit(text, (win_width // 2 - text.get_width() // 2, win_height // 2 - text.get_height() // 2))
                 pg.display.flip()
-                pg.time.wait(2000)
-                break
             elif self.minesweeper.is_game_won(): # Win
                 screen.fill(BACKGROUND)
-                text = font.render("You Win!", True, GENERAL_TEXT)
-                text_rect = text.get_rect(center=(w // 2, h // 2))
-                screen.blit(text, text_rect)
+                win_width, win_height = screen.get_size()
+                overlay = pg.Surface((win_width, win_height), pg.SRCALPHA) # Create an overlay surface that allows for transparency
+                overlay.fill(TRANSPARENT_GREEN, (0, win_height // 2 - 30, win_width, 60)) 
+                screen.blit(overlay, (0, 0))
+                text = font.render("You Win!", True, BLACK)
+                screen.blit(text, (win_width // 2 - text.get_width() // 2, win_height // 2 - text.get_height() // 2))
                 pg.display.flip()
-                pg.time.wait(2000)
-                break
 
             pg.display.flip()
             clock.tick(60)
