@@ -9,26 +9,20 @@ import pygame as pg
 import pygame_textinput as textinput
 import random
 
-# Window layout
-WIN_SIZE = (440, 440)
-GRID_PIXELS = 400
-
 # Board layout (fixed 10x10)
 BOARD_WIDTH = 10
 BOARD_HEIGHT = 10
-CELL = GRID_PIXELS // BOARD_WIDTH  # 40 px per cell
 
 # Colors (RGB)
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
-GRID_LINE = (120, 0, 0)
-HIDDEN = (190, 190, 190)
-REVEALED_EMPTY = (200, 200, 200)
-REVEALED_NUMBER = (160, 160, 160)
-MINE_RED = (255, 0, 0)
-LABEL_GRAY = (90, 90, 90)
-
-# Colors (RGBA)
+GRID_LINE = (255, 255, 255)
+HIDDEN = (247, 225, 215)
+REVEALED_EMPTY = (222, 219, 210)
+REVEALED_NUMBER = (176, 196, 177)
+MINE_RED = (219, 110, 110)
+BACKGROUND = (74, 87, 89)
+GENERAL_TEXT = (176, 196, 177)
 TRANSPARENT_RED = (255, 155, 155, 180)
 TRANSPARENT_GREEN = (155, 255, 155, 200)
 
@@ -137,19 +131,11 @@ class Minesweeper:
                 if self.board[y][x] == -1:
                     self.revealed[y][x] = True
 
-
 class Game:
-    def __init__(self, margin_left=40, margin_top=40):
+    def __init__(self):
         """Initialize the game."""
         self.minesweeper = None
         self.quit = False
-        self.margin_left = margin_left
-        self.margin_top = margin_top
-        #Playable grid rectangle/square in window pixels (area AFTER the label margins)
-        self.grid_x0 = self.margin_left #left edge of PLAYABLE board
-        self.grid_y0 = self.margin_top #top edge of PLAYABLE board
-        self.grid_x1 = self.grid_x0 + GRID_PIXELS #right edge of board
-        self.grid_y1 = self.grid_y0 + GRID_PIXELS #bottom edge of board
         pg.init()
 
     def start_game(self, width: int, height: int, num_mines: int):
@@ -165,41 +151,58 @@ class Game:
         game = Game()
         game.run()
         
-    def mouse_to_grid(self, mx: int, my:int):
+    def mouse_to_grid(self, mx: int, my: int, grid_x0, grid_y0, cell_size, grid_width, grid_height):
         """Convert mouse pixel coordinates (mx, my) to grid coordinates (gx, gy), or None if click outside of board"""
-        if not (self.grid_x0 <= mx < self.grid_x1 and self.grid_y0 <= my < self.grid_y1):
+        if not (grid_x0 <= mx < grid_x0 + cell_size * grid_width and grid_y0 <= my < grid_y0 + cell_size * grid_height):
             return None
-        gx = (mx - self.grid_x0) // CELL
-        gy = (my - self.grid_y0) // CELL
+        gx = (mx - grid_x0) // cell_size
+        gy = (my - grid_y0) // cell_size
         return int(gx), int(gy)
 
     def run(self):
         """Main game loop. Title screen followed by game."""
-        screen = pg.display.set_mode(WIN_SIZE)
+        screen = pg.display.set_mode((600, 600), pg.RESIZABLE)
         clock = pg.time.Clock()
         font = pg.font.SysFont(None, 24)
 
         # Cap mines at 20 as per requirements
-        mines_input = textinput.TextInputVisualizer(manager=textinput.TextInputManager(validator=lambda x: (x.isdigit() and int(x) <= 20) or x == ''))
+        mines_input = textinput.TextInputVisualizer(manager=textinput.TextInputManager(validator=lambda x: (x.isdigit() and int(x) <= 20) or x == ''),
+                                                    font_color=GENERAL_TEXT,
+                                                    cursor_color=WHITE
+                                                    )
 
         # Title screen loop
         while not self.minesweeper and not self.quit:
-            screen.fill(WHITE)
-            pg.display.set_caption("Minesweeper -- Title Screen")
+            screen.fill(BACKGROUND)
+            pg.display.set_caption("Minesweeper")
 
-            # Render text
-            mines_text = font.render("Mines (10-20): ", True, BLACK)
-            screen.blit(mines_text, (100, 180))
+            w, h = screen.get_size()
+            grid_size = min(w, h) * 0.8
+            cell_size = int(grid_size // BOARD_WIDTH)
+            grid_width = BOARD_WIDTH * cell_size
+            grid_height = BOARD_HEIGHT * cell_size
+            grid_x0 = (w - grid_width) // 2
+            grid_y0 = (h - grid_height) // 2
+
+            # Render text centered above grid
+            mines_text = font.render("Enter Mine Count (10-20): ", True, GENERAL_TEXT)
+            mines_text_y = max(10, grid_y0 - 40)
+            mines_text_rect = mines_text.get_rect(center=(w // 2, mines_text_y))
+            screen.blit(mines_text, mines_text_rect)
 
             events = pg.event.get()
 
             # Updates mine and render mine-count input field
             mines_input.update(events)
-            screen.blit(mines_input.surface, (250, 180))
-            
-            #Draw hint text
-            hint_text = font.render("Press Enter to Start", True, (LABEL_GRAY))
-            screen.blit(hint_text, (100,210))
+            mines_input_rect = mines_input.surface.get_rect(center=(w // 2, grid_y0 + grid_height // 2))
+            screen.blit(mines_input.surface, mines_input_rect)
+
+            # Draw hint text
+            hint_text = font.render("Press Enter to Start", True, (GENERAL_TEXT))
+            hint_text_y = min(h - 10, grid_y0 + grid_height + 10)
+            hint_text_x = max(w // 2, min(w - w // 2, w // 2))
+            hint_text_rect = hint_text.get_rect(center=(hint_text_x, hint_text_y))
+            screen.blit(hint_text, hint_text_rect)
 
             # Handle key presses
             for event in events:
@@ -217,16 +220,25 @@ class Game:
 
         while not self.quit:  # Main game loop
             pg.display.set_caption("Minesweeper -- Game")
+            w, h = screen.get_size()
+            grid_size = min(w, h) * 0.8
+            cell_size = int(grid_size // BOARD_WIDTH)
+            grid_width = BOARD_WIDTH * cell_size
+            grid_height = BOARD_HEIGHT * cell_size
+            grid_x0 = (w - grid_width) // 2
+            grid_y0 = (h - grid_height) // 2
+
             for event in pg.event.get():
                 if event.type == pg.QUIT:
                     # Safe exit
                     self.quit = True
                     break
+                elif event.type == pg.VIDEORESIZE:
+                    screen = pg.display.set_mode((event.w, event.h), pg.RESIZABLE)
                 elif event.type == pg.MOUSEBUTTONDOWN and self.minesweeper: # Click
-                    # Get grid position
-                    hit = self.mouse_to_grid(*event.pos)
+                    hit = self.mouse_to_grid(*event.pos, grid_x0, grid_y0, cell_size, BOARD_WIDTH, BOARD_HEIGHT)
                     if hit is None:
-                        continue  # clicked margin or outside grid
+                        continue  # Clicked margin or outside grid
                     grid_x, grid_y = hit
                     if event.button == 1: # Left click reveal
                         self.minesweeper.reveal_square(grid_x, grid_y)
@@ -234,54 +246,52 @@ class Game:
                         self.minesweeper.toggle_flag(grid_x, grid_y)
 
             # Draw the grid
-            # TODO: Make game window scalable?
-            screen.fill(WHITE)
+            screen.fill(BACKGROUND)
             board = self.minesweeper.get_display_board()
             for y in range(self.minesweeper.height):
                 for x in range(self.minesweeper.width):
                     value = board[y][x]
                     if self.minesweeper.revealed[y][x]:
                         if value == -1:
-                            color = (MINE_RED)    
+                            color = MINE_RED
                         elif value == 0:
-                            color = (REVEALED_EMPTY)    
+                            color = REVEALED_EMPTY
                         else:
-                            color = (REVEALED_NUMBER)   
+                            color = REVEALED_NUMBER
                     else:
-                        color = (HIDDEN)       
+                        color = HIDDEN
 
-                    cell_rect = pg.Rect(self.grid_x0 + x * CELL, self.grid_y0 + y * CELL, CELL, CELL)
+                    cell_rect = pg.Rect(grid_x0 + x * cell_size, grid_y0 + y * cell_size, cell_size, cell_size)
                     pg.draw.rect(screen, color, cell_rect)
                     pg.draw.rect(screen, GRID_LINE, cell_rect, 1)  # grid line
 
                     # draw text centered in the cell
                     if self.minesweeper.revealed[y][x]: # Draw number if revealed
-                        txt = font.render(str(value if value >= 0 else 'X'), True, BLACK)
+                        txt = font.render(str(value if value >= 0 else 'X'), True, WHITE)
                         screen.blit(txt, txt.get_rect(center=cell_rect.center))
                     elif self.minesweeper.flags[y][x]: # Draw flag if flagged
-                        txt = font.render("F", True, BLACK)
+                        txt = font.render("F", True, BACKGROUND)
                         screen.blit(txt, txt.get_rect(center=cell_rect.center))
 
             # Column labels A–J (top)
             for col_index, letter in enumerate("ABCDEFGHIJ"):
-                text_surface = font.render(letter, True, BLACK)
+                text_surface = font.render(letter, True, GENERAL_TEXT)
                 text_rect = text_surface.get_rect(center=(
-                    self.grid_x0 + col_index * CELL + CELL// 2,
-                    self.grid_y0 // 2
+                    grid_x0 + col_index * cell_size + cell_size // 2,
+                    grid_y0 // 2
                 ))
                 screen.blit(text_surface, text_rect)
 
             # Row labels 1–10 (left)
             for row_index in range(BOARD_HEIGHT):
-                text_surface = font.render(str(row_index + 1), True, BLACK)
+                text_surface = font.render(str(row_index + 1), True, GENERAL_TEXT)
                 text_rect = text_surface.get_rect(center=(
-                    self.grid_x0 // 2,
-                    self.grid_y0 + row_index * CELL + CELL // 2
+                    grid_x0 // 2,
+                    grid_y0 + row_index * cell_size + cell_size // 2
                 ))
                 screen.blit(text_surface, text_rect)
-                
+
             # Game end
-            # TODO: Transparent end screens? Or at least display final board first
             if self.minesweeper.is_game_over(): # Loss
                 win_width, win_height = screen.get_size()
                 overlay = pg.Surface((win_width, win_height), pg.SRCALPHA) # Create an overlay surface that allows for transparency
@@ -302,6 +312,5 @@ class Game:
             pg.display.flip()
             clock.tick(60)
         self.exit_game()
-
 
 Game.play_minesweeper()
