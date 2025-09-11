@@ -20,7 +20,7 @@ GRID_LINE = (255, 255, 255)
 HIDDEN = (247, 225, 215)
 REVEALED_EMPTY = (222, 219, 210)
 REVEALED_NUMBER = (176, 196, 177)
-MINE_RED = (220,20,60)
+MINE_RED = (219, 110, 110)
 BACKGROUND = (74, 87, 89)
 GENERAL_TEXT = (176, 196, 177)
 TRANSPARENT_RED = (255, 155, 155, 180)
@@ -292,9 +292,7 @@ class Game:
                 screen.blit(text_surface, text_rect)
 
             # Game end
-            # TODO: Transparent end screens? Or at least display final board first
             if self.minesweeper.is_game_over(): # Loss
-                screen.fill(BACKGROUND)
                 win_width, win_height = screen.get_size()
                 overlay = pg.Surface((win_width, win_height), pg.SRCALPHA) # Create an overlay surface that allows for transparency
                 overlay.fill(TRANSPARENT_RED, (0, win_height // 2 - 30, win_width, 60)) 
@@ -303,7 +301,6 @@ class Game:
                 screen.blit(text, (win_width // 2 - text.get_width() // 2, win_height // 2 - text.get_height() // 2))
                 pg.display.flip()
             elif self.minesweeper.is_game_won(): # Win
-                screen.fill(BACKGROUND)
                 win_width, win_height = screen.get_size()
                 overlay = pg.Surface((win_width, win_height), pg.SRCALPHA) # Create an overlay surface that allows for transparency
                 overlay.fill(TRANSPARENT_GREEN, (0, win_height // 2 - 30, win_width, 60)) 
