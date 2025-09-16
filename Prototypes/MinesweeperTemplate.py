@@ -42,6 +42,8 @@ class Minesweeper:
         self.flags = [[False for _ in range(width)] for _ in range(height)]
         self.game_over = False
         self.mines_placed = False  # Flag to track if mines have been placed
+        self.start_ticks = None   # when the game actually starts
+        self.end_time = None      # frozen final time
 
     def place_mines(self, safe_x=None, safe_y=None):
         """Place mines, ensuring the first square is safe."""
@@ -145,6 +147,8 @@ class Game:
     def start_game(self, width: int, height: int, num_mines: int):
         """Start a new minesweeper board with given width, height, and num_mines."""
         self.minesweeper = Minesweeper(width, height, num_mines)
+        self.start_ticks = pg.time.get_ticks()  # milliseconds since pg.init()
+        self.end_time = None
 
     def exit_game(self):
         """Perform any game cleanup here (if needed), then quit()."""
@@ -260,6 +264,15 @@ class Game:
                     elif event.button == 3: # Right click flag
                         self.minesweeper.toggle_flag(grid_x, grid_y)
 
+            # Update timer
+            if self.start_ticks is not None:
+                if self.end_time is not None:
+                    elapsed_seconds = self.end_time
+                else:
+                    elapsed_seconds = (pg.time.get_ticks() - self.start_ticks) // 1000
+            else:
+                elapsed_seconds = 0
+
             # Draw the grid
             screen.fill(BACKGROUND)
             board = self.minesweeper.get_display_board()
@@ -306,8 +319,17 @@ class Game:
                 ))
                 screen.blit(text_surface, text_rect)
 
+            # Timer display
+            time_text = font.render(f"TIME: {elapsed_seconds}", True, GENERAL_TEXT)
+            screen.blit(time_text, (
+                w - time_text.get_width() - 10,
+                h - time_text.get_height() - 10 
+            ))
+
             # Game end
             if self.minesweeper.is_game_over(): # Loss
+                if self.end_time is None:
+                    self.end_time = (pg.time.get_ticks() - self.start_ticks) // 1000
                 win_width, win_height = screen.get_size()
                 overlay = pg.Surface((win_width, win_height), pg.SRCALPHA) # Create an overlay surface that allows for transparency
                 overlay.fill(TRANSPARENT_RED, (0, win_height // 2 - 30, win_width, 60)) 
@@ -316,6 +338,8 @@ class Game:
                 screen.blit(text, (win_width // 2 - text.get_width() // 2, win_height // 2 - text.get_height() // 2))
                 pg.display.flip()
             elif self.minesweeper.is_game_won(): # Win
+                if self.end_time is None:
+                    self.end_time = (pg.time.get_ticks() - self.start_ticks) // 1000
                 win_width, win_height = screen.get_size()
                 overlay = pg.Surface((win_width, win_height), pg.SRCALPHA) # Create an overlay surface that allows for transparency
                 overlay.fill(TRANSPARENT_GREEN, (0, win_height // 2 - 30, win_width, 60)) 
