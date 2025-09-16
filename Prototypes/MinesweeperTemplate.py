@@ -8,6 +8,7 @@ TODO: Prologue comment placeholder
 import pygame as pg
 import pygame_textinput as textinput
 import random
+import os
 
 # Board layout (fixed 10x10)
 BOARD_WIDTH = 10
@@ -29,6 +30,11 @@ BACKGROUND = (74, 87, 89)
 GENERAL_TEXT = (176, 196, 177)
 TRANSPARENT_RED = (255, 155, 155, 180)
 TRANSPARENT_GREEN = (155, 255, 155, 200)
+
+# Paths for assets
+BASE_DIR = os.path.dirname(__file__)
+FLAG_PATH = os.path.join(BASE_DIR, "Assets", "flag.png")
+MINE_PATH = os.path.join(BASE_DIR, "Assets", "skull.png")
 
 # Minesweeper prototype
 class Minesweeper:
@@ -180,7 +186,10 @@ class Game:
         """Main game loop. Title screen followed by game."""
         screen = pg.display.set_mode((600, 600), pg.RESIZABLE)
         clock = pg.time.Clock()
-        font = pg.font.SysFont(None, 24)
+        try:
+            font = pg.font.Font("Prototypes/Assets/pixelfont.ttf", 24)
+        except FileNotFoundError:
+            font = pg.font.SysFont(None, 24)
 
         try:
             self.cursor_img = pg.image.load("Prototypes/Assets/cursor.png").convert_alpha()
@@ -189,9 +198,13 @@ class Game:
             print("Cursor image failed to load:", e)
             self.cursor_img = None
             pg.mouse.set_visible(True)
+        
+        self.flag_img = pg.image.load(FLAG_PATH).convert_alpha()
+        self.mine_img = pg.image.load(MINE_PATH).convert_alpha()
 
         # Cap mines at 20 as per requirements
         mines_input = textinput.TextInputVisualizer(manager=textinput.TextInputManager(validator=lambda x: (x.isdigit() and int(x) <= 20) or x == ''),
+                                                    font_object=font, 
                                                     font_color=GENERAL_TEXT,
                                                     cursor_color=WHITE
                                                     )
@@ -236,7 +249,9 @@ class Game:
                     break
                 elif event.type == pg.VIDEORESIZE:
                     new_w, new_h = self._clamp_size(event.w, event.h)
-                    screen = pg.display.set_mode((new_w, new_h), pg.RESIZABLE)
+                    cur_w, cur_h = screen.get_size()
+                    if (new_w, new_h) != (cur_w, cur_h):
+                        screen = pg.display.set_mode((new_w, new_h), pg.RESIZABLE)
                 elif event.type == pg.KEYDOWN and event.key == pg.K_RETURN:
                     # Start game if mine count provided and within 10-20 range
                     if (mines_input.value and 10 <= int(mines_input.value) <= 20):
@@ -263,7 +278,9 @@ class Game:
                     break
                 elif event.type == pg.VIDEORESIZE:
                     new_w, new_h = self._clamp_size(event.w, event.h)
-                    screen = pg.display.set_mode((new_w, new_h), pg.RESIZABLE)
+                    cur_w, cur_h = screen.get_size()
+                    if (new_w, new_h) != (cur_w, cur_h):
+                        screen = pg.display.set_mode((new_w, new_h), pg.RESIZABLE)
                 elif event.type == pg.MOUSEBUTTONDOWN and self.minesweeper: # Click
                     hit = self.mouse_to_grid(*event.pos, grid_x0, grid_y0, cell_size, BOARD_WIDTH, BOARD_HEIGHT)
                     if hit is None:
@@ -305,11 +322,20 @@ class Game:
 
                     # draw text centered in the cell
                     if self.minesweeper.revealed[y][x]: # Draw number if revealed
-                        txt = font.render(str(value if value >= 0 else 'X'), True, WHITE)
-                        screen.blit(txt, txt.get_rect(center=cell_rect.center))
-                    elif self.minesweeper.flags[y][x]: # Draw flag if flagged
-                        txt = font.render("F", True, BACKGROUND)
-                        screen.blit(txt, txt.get_rect(center=cell_rect.center))
+                        if value == -1: 
+                            icon_size = int(cell_size * 0.5)
+                            mine_scaled = pg.transform.smoothscale(self.mine_img, (icon_size, icon_size))
+                            screen.blit(mine_scaled, mine_scaled.get_rect(center=cell_rect.center))
+                        elif value > 0:
+                            txt = font.render(str(value), True, WHITE)
+                            screen.blit(txt, txt.get_rect(center=cell_rect.center))
+                        else:  # value == 0
+                            txt = font.render("0", True, WHITE)
+                            screen.blit(txt, txt.get_rect(center=cell_rect.center))
+                    elif self.minesweeper.flags[y][x]:  # Draw flag if flagged (and hidden)
+                        icon_size = int(cell_size * 0.5)
+                        flag_scaled = pg.transform.smoothscale(self.flag_img, (icon_size, icon_size))
+                        screen.blit(flag_scaled, flag_scaled.get_rect(center=cell_rect.center))
 
             # Column labels A–J (top)
             for col_index, letter in enumerate("ABCDEFGHIJ"):
