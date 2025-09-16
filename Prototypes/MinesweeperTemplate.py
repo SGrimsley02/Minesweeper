@@ -14,9 +14,8 @@ import os
 BOARD_WIDTH = 10
 BOARD_HEIGHT = 10
 
-# Window size limits
+# Window size limit
 MIN_WINDOW = (520, 520)  
-MAX_WINDOW = (1200, 1000) 
 
 # Colors (RGB)
 WHITE = (255, 255, 255)
@@ -177,10 +176,10 @@ class Game:
     
     def _clamp_size(self, w, h):
         min_w, min_h = MIN_WINDOW
-        max_w, max_h = MAX_WINDOW
-        w = max(min_w, min(w, max_w))
-        h = max(min_h, min(h, max_h))
+        w = max(min_w, w)
+        h = max(min_h, h)
         return w, h
+
 
     def run(self):
         """Main game loop. Title screen followed by game."""
@@ -193,12 +192,12 @@ class Game:
 
         try:
             self.cursor_img = pg.image.load("Prototypes/Assets/cursor.png").convert_alpha()
-            pg.mouse.set_visible(True)
         except Exception as e:
             print("Cursor image failed to load:", e)
             self.cursor_img = None
-            pg.mouse.set_visible(True)
-        
+
+        pg.mouse.set_visible(True)
+
         self.flag_img = pg.image.load(FLAG_PATH).convert_alpha()
         self.mine_img = pg.image.load(MINE_PATH).convert_alpha()
 
