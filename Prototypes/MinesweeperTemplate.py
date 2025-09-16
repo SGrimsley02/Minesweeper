@@ -149,9 +149,11 @@ class Game:
         self.minesweeper = Minesweeper(width, height, num_mines)
         self.start_ticks = pg.time.get_ticks()  # milliseconds since pg.init()
         self.end_time = None
+        pg.mouse.set_visible(False)  # hide when gameplay begins
 
     def exit_game(self):
         """Perform any game cleanup here (if needed), then quit()."""
+        pg.mouse.set_visible(True)
         pg.quit()
 
     def play_minesweeper():
@@ -179,6 +181,14 @@ class Game:
         screen = pg.display.set_mode((600, 600), pg.RESIZABLE)
         clock = pg.time.Clock()
         font = pg.font.SysFont(None, 24)
+
+        try:
+            self.cursor_img = pg.image.load("Prototypes/Assets/cursor.png").convert_alpha()
+            pg.mouse.set_visible(True)
+        except Exception as e:
+            print("Cursor image failed to load:", e)
+            self.cursor_img = None
+            pg.mouse.set_visible(True)
 
         # Cap mines at 20 as per requirements
         mines_input = textinput.TextInputVisualizer(manager=textinput.TextInputManager(validator=lambda x: (x.isdigit() and int(x) <= 20) or x == ''),
@@ -336,7 +346,6 @@ class Game:
                 screen.blit(overlay, (0, 0))
                 text = font.render("Game Over", True, BLACK)
                 screen.blit(text, (win_width // 2 - text.get_width() // 2, win_height // 2 - text.get_height() // 2))
-                pg.display.flip()
             elif self.minesweeper.is_game_won(): # Win
                 if self.end_time is None:
                     self.end_time = (pg.time.get_ticks() - self.start_ticks) // 1000
@@ -346,7 +355,11 @@ class Game:
                 screen.blit(overlay, (0, 0))
                 text = font.render("You Win!", True, BLACK)
                 screen.blit(text, (win_width // 2 - text.get_width() // 2, win_height // 2 - text.get_height() // 2))
-                pg.display.flip()
+
+            # Custom cursor
+            if self.cursor_img is not None:
+                mx, my = pg.mouse.get_pos()
+                screen.blit(self.cursor_img, (mx, my))
 
             pg.display.flip()
             clock.tick(60)
