@@ -10,7 +10,7 @@ import pygame_textinput as textinput
 import random
 
 # Window layout
-WIN_SIZE = (440, 440)
+WIN_SIZE = (440, 500)
 GRID_PIXELS = 400
 
 # Board layout (fixed 10x10)
@@ -274,6 +274,12 @@ class Game:
                     self.grid_y0 + row_index * CELL + CELL // 2
                 ))
                 screen.blit(text_surface, text_rect)
+
+            # Flag Count
+            flag_rect = pg.Rect(220, 460, 10, 10)
+            pg.draw.rect(screen, WHITE, flag_rect)
+            flags = font.render(f'Flags Remaining: {str(self.minesweeper.flags_remaining)}', True, BLACK)
+            screen.blit(flags, flags.get_rect(center=flag_rect.center))
                 
             # Game end
             # TODO: Transparent end screens? Or at least display final board first
