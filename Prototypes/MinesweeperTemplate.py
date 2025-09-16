@@ -298,9 +298,9 @@ class Game:
                 screen.blit(text_surface, text_rect)
 
             # Flag Count
-            flag_rect = pg.Rect(220, 460, 10, 10)
-            pg.draw.rect(screen, WHITE, flag_rect)
-            flags = font.render(f'Flags Remaining: {str(self.minesweeper.flags_remaining)}', True, BLACK)
+            flag_rect = pg.Rect(w/2, h*12/13, 10, 10)
+            pg.draw.rect(screen, BACKGROUND, flag_rect)
+            flags = font.render(f'Flags Remaining: {str(self.minesweeper.flags_remaining)}', True, WHITE)
             screen.blit(flags, flags.get_rect(center=flag_rect.center))
                 
             # Game end
