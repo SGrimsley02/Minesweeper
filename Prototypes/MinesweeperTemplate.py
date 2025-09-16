@@ -13,6 +13,10 @@ import random
 BOARD_WIDTH = 10
 BOARD_HEIGHT = 10
 
+# Window size limits
+MIN_WINDOW = (520, 520)  
+MAX_WINDOW = (1200, 1000) 
+
 # Colors (RGB)
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
@@ -158,6 +162,13 @@ class Game:
         gx = (mx - grid_x0) // cell_size
         gy = (my - grid_y0) // cell_size
         return int(gx), int(gy)
+    
+    def _clamp_size(self, w, h):
+        min_w, min_h = MIN_WINDOW
+        max_w, max_h = MAX_WINDOW
+        w = max(min_w, min(w, max_w))
+        h = max(min_h, min(h, max_h))
+        return w, h
 
     def run(self):
         """Main game loop. Title screen followed by game."""
@@ -209,7 +220,10 @@ class Game:
                 if event.type == pg.QUIT:
                     self.quit = True
                     break
-                if event.type == pg.KEYDOWN and event.key == pg.K_RETURN:
+                elif event.type == pg.VIDEORESIZE:
+                    new_w, new_h = self._clamp_size(event.w, event.h)
+                    screen = pg.display.set_mode((new_w, new_h), pg.RESIZABLE)
+                elif event.type == pg.KEYDOWN and event.key == pg.K_RETURN:
                     # Start game if mine count provided and within 10-20 range
                     if (mines_input.value and 10 <= int(mines_input.value) <= 20):
                         num_mines = int(mines_input.value)
@@ -234,7 +248,8 @@ class Game:
                     self.quit = True
                     break
                 elif event.type == pg.VIDEORESIZE:
-                    screen = pg.display.set_mode((event.w, event.h), pg.RESIZABLE)
+                    new_w, new_h = self._clamp_size(event.w, event.h)
+                    screen = pg.display.set_mode((new_w, new_h), pg.RESIZABLE)
                 elif event.type == pg.MOUSEBUTTONDOWN and self.minesweeper: # Click
                     hit = self.mouse_to_grid(*event.pos, grid_x0, grid_y0, cell_size, BOARD_WIDTH, BOARD_HEIGHT)
                     if hit is None:
