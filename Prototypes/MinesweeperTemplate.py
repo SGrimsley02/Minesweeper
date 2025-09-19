@@ -8,10 +8,14 @@ TODO: Prologue comment placeholder
 import pygame as pg
 import pygame_textinput as textinput
 import random
+import os
 
 # Board layout (fixed 10x10)
 BOARD_WIDTH = 10
 BOARD_HEIGHT = 10
+
+# Window size limit
+MIN_WINDOW = (550, 550)  
 
 # Colors (RGB)
 WHITE = (255, 255, 255)
@@ -26,6 +30,11 @@ GENERAL_TEXT = (176, 196, 177)
 TRANSPARENT_RED = (255, 155, 155, 180)
 TRANSPARENT_GREEN = (155, 255, 155, 200)
 
+# Paths for assets
+BASE_DIR = os.path.dirname(__file__)
+FLAG_PATH = os.path.join(BASE_DIR, "Assets", "flag.png")
+MINE_PATH = os.path.join(BASE_DIR, "Assets", "skull.png")
+
 # Minesweeper prototype
 class Minesweeper:
     def __init__(self, width, height, num_mines):
@@ -39,6 +48,8 @@ class Minesweeper:
         self.flags = [[False for _ in range(width)] for _ in range(height)]
         self.game_over = False
         self.mines_placed = False  # Flag to track if mines have been placed
+        self.start_ticks = None   # when the game actually starts
+        self.end_time = None      # frozen final time
 
     def place_mines(self, safe_x=None, safe_y=None):
         """Place mines, ensuring the first square is safe."""
@@ -147,9 +158,13 @@ class Game:
     def start_game(self, width: int, height: int, num_mines: int):
         """Start a new minesweeper board with given width, height, and num_mines."""
         self.minesweeper = Minesweeper(width, height, num_mines)
+        self.start_ticks = pg.time.get_ticks()  # milliseconds since pg.init()
+        self.end_time = None
+        pg.mouse.set_visible(False)  # hide when gameplay begins
 
     def exit_game(self):
         """Perform any game cleanup here (if needed), then quit()."""
+        pg.mouse.set_visible(True)
         pg.quit()
 
     def play_minesweeper():
@@ -164,15 +179,37 @@ class Game:
         gx = (mx - grid_x0) // cell_size
         gy = (my - grid_y0) // cell_size
         return int(gx), int(gy)
+    
+    def _clamp_size(self, w, h):
+        min_w, min_h = MIN_WINDOW
+        w = max(min_w, w)
+        h = max(min_h, h)
+        return w, h
+
 
     def run(self):
         """Main game loop. Title screen followed by game."""
         screen = pg.display.set_mode((600, 600), pg.RESIZABLE)
         clock = pg.time.Clock()
-        font = pg.font.SysFont(None, 24)
+        try:
+            font = pg.font.Font("Prototypes/Assets/pixelfont.ttf", 24)
+        except FileNotFoundError:
+            font = pg.font.SysFont(None, 24)
+
+        try:
+            self.cursor_img = pg.image.load("Prototypes/Assets/cursor.png").convert_alpha()
+        except Exception as e:
+            print("Cursor image failed to load:", e)
+            self.cursor_img = None
+
+        pg.mouse.set_visible(True)
+
+        self.flag_img = pg.image.load(FLAG_PATH).convert_alpha()
+        self.mine_img = pg.image.load(MINE_PATH).convert_alpha()
 
         # Cap mines at 20 as per requirements
         mines_input = textinput.TextInputVisualizer(manager=textinput.TextInputManager(validator=lambda x: (x.isdigit() and int(x) <= 20) or x == ''),
+                                                    font_object=font, 
                                                     font_color=GENERAL_TEXT,
                                                     cursor_color=WHITE
                                                     )
@@ -215,7 +252,12 @@ class Game:
                 if event.type == pg.QUIT:
                     self.quit = True
                     break
-                if event.type == pg.KEYDOWN and event.key == pg.K_RETURN:
+                elif event.type == pg.VIDEORESIZE:
+                    new_w, new_h = self._clamp_size(event.w, event.h)
+                    cur_w, cur_h = screen.get_size()
+                    if (new_w, new_h) != (cur_w, cur_h):
+                        screen = pg.display.set_mode((new_w, new_h), pg.RESIZABLE)
+                elif event.type == pg.KEYDOWN and event.key == pg.K_RETURN:
                     # Start game if mine count provided and within 10-20 range
                     if (mines_input.value and 10 <= int(mines_input.value) <= 20):
                         num_mines = int(mines_input.value)
@@ -240,7 +282,10 @@ class Game:
                     self.quit = True
                     break
                 elif event.type == pg.VIDEORESIZE:
-                    screen = pg.display.set_mode((event.w, event.h), pg.RESIZABLE)
+                    new_w, new_h = self._clamp_size(event.w, event.h)
+                    cur_w, cur_h = screen.get_size()
+                    if (new_w, new_h) != (cur_w, cur_h):
+                        screen = pg.display.set_mode((new_w, new_h), pg.RESIZABLE)
                 elif event.type == pg.MOUSEBUTTONDOWN and self.minesweeper: # Click
                     hit = self.mouse_to_grid(*event.pos, grid_x0, grid_y0, cell_size, BOARD_WIDTH, BOARD_HEIGHT)
                     if hit is None:
@@ -250,6 +295,15 @@ class Game:
                         self.minesweeper.reveal_square(grid_x, grid_y)
                     elif event.button == 3: # Right click flag
                         self.minesweeper.toggle_flag(grid_x, grid_y)
+
+            # Update timer
+            if self.start_ticks is not None:
+                if self.end_time is not None:
+                    elapsed_seconds = self.end_time
+                else:
+                    elapsed_seconds = (pg.time.get_ticks() - self.start_ticks) // 1000
+            else:
+                elapsed_seconds = 0
 
             # Draw the grid
             screen.fill(BACKGROUND)
@@ -273,11 +327,20 @@ class Game:
 
                     # draw text centered in the cell
                     if self.minesweeper.revealed[y][x]: # Draw number if revealed
-                        txt = font.render(str(value if value >= 0 else 'X'), True, WHITE)
-                        screen.blit(txt, txt.get_rect(center=cell_rect.center))
-                    elif self.minesweeper.flags[y][x]: # Draw flag if flagged
-                        txt = font.render("F", True, BACKGROUND)
-                        screen.blit(txt, txt.get_rect(center=cell_rect.center))
+                        if value == -1: 
+                            icon_size = int(cell_size * 0.5)
+                            mine_scaled = pg.transform.smoothscale(self.mine_img, (icon_size, icon_size))
+                            screen.blit(mine_scaled, mine_scaled.get_rect(center=cell_rect.center))
+                        elif value > 0:
+                            txt = font.render(str(value), True, WHITE)
+                            screen.blit(txt, txt.get_rect(center=cell_rect.center))
+                        else:  # value == 0
+                            txt = font.render("0", True, WHITE)
+                            screen.blit(txt, txt.get_rect(center=cell_rect.center))
+                    elif self.minesweeper.flags[y][x]:  # Draw flag if flagged (and hidden)
+                        icon_size = int(cell_size * 0.5)
+                        flag_scaled = pg.transform.smoothscale(self.flag_img, (icon_size, icon_size))
+                        screen.blit(flag_scaled, flag_scaled.get_rect(center=cell_rect.center))
 
             # Column labels A–J (top)
             for col_index, letter in enumerate("ABCDEFGHIJ"):
@@ -297,6 +360,13 @@ class Game:
                 ))
                 screen.blit(text_surface, text_rect)
 
+            # Timer display
+            time_text = font.render(f"TIME: {elapsed_seconds}", True, GENERAL_TEXT)
+            screen.blit(time_text, (
+                w - time_text.get_width() - 10,
+                h - time_text.get_height() - 10 
+            ))
+      
             # Flag Count
             flag_rect = pg.Rect(w/2, h*12/13, 10, 10)
             pg.draw.rect(screen, BACKGROUND, flag_rect)
@@ -305,21 +375,28 @@ class Game:
                 
             # Game end
             if self.minesweeper.is_game_over(): # Loss
+                if self.end_time is None:
+                    self.end_time = (pg.time.get_ticks() - self.start_ticks) // 1000
                 win_width, win_height = screen.get_size()
                 overlay = pg.Surface((win_width, win_height), pg.SRCALPHA) # Create an overlay surface that allows for transparency
                 overlay.fill(TRANSPARENT_RED, (0, win_height // 2 - 30, win_width, 60)) 
                 screen.blit(overlay, (0, 0))
                 text = font.render("Game Over", True, BLACK)
                 screen.blit(text, (win_width // 2 - text.get_width() // 2, win_height // 2 - text.get_height() // 2))
-                pg.display.flip()
             elif self.minesweeper.is_game_won(): # Win
+                if self.end_time is None:
+                    self.end_time = (pg.time.get_ticks() - self.start_ticks) // 1000
                 win_width, win_height = screen.get_size()
                 overlay = pg.Surface((win_width, win_height), pg.SRCALPHA) # Create an overlay surface that allows for transparency
                 overlay.fill(TRANSPARENT_GREEN, (0, win_height // 2 - 30, win_width, 60)) 
                 screen.blit(overlay, (0, 0))
                 text = font.render("You Win!", True, BLACK)
                 screen.blit(text, (win_width // 2 - text.get_width() // 2, win_height // 2 - text.get_height() // 2))
-                pg.display.flip()
+
+            # Custom cursor
+            if self.cursor_img is not None:
+                mx, my = pg.mouse.get_pos()
+                screen.blit(self.cursor_img, (mx, my))
 
             pg.display.flip()
             clock.tick(60)
