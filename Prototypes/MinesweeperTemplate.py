@@ -15,7 +15,7 @@ BOARD_WIDTH = 10
 BOARD_HEIGHT = 10
 
 # Window size limit
-MIN_WINDOW = (520, 520)  
+MIN_WINDOW = (550, 550)  
 
 # Colors (RGB)
 WHITE = (255, 255, 255)
