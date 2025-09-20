@@ -1,8 +1,14 @@
 """
-TODO: Prologue comment placeholder
-    Due to grading criteria we probably need to split this into two files
-    To avoid merge conflicts with existing branches, I'm waiting until
-    later to do this -Kiara
+Module: MinesweeperBoard
+Class: Board
+Description: Defines the Minesweeper game board and logic for placing mines,
+                revealing squares, toggling flags, and end conditions.
+Inputs: Width, height, and number of mines defining the initial board setup.
+Outputs: Minesweeper game board.
+External Sources: None
+Authors: Kiara [Sam] Grimsley, Reeny Huang, Lauren D'Souza, Audrey Pan, Ella Nguyen, Hart Nurnberg
+Created: September 19, 2025 (original prototype August 25, 2025)
+Last Modified: September 19, 2025
 """
 
 import random

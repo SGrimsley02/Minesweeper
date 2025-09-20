@@ -1,8 +1,13 @@
 """
-TODO: Prologue comment placeholder
-    Due to grading criteria we probably need to split this into two files
-    To avoid merge conflicts with existing branches, I'm waiting until
-    later to do this -Kiara
+Module: PlayMinesweeper
+Function: play_minesweeper
+Description: Run minesweeper game.
+Inputs: None
+Outputs: Starts the Minesweeper game window.
+External Sources: None
+Author: Kiara [Sam] Grimsley
+Created: September 19, 2025
+Last Modified: September 19, 2025
 """
 
 from MinesweeperGame import Game

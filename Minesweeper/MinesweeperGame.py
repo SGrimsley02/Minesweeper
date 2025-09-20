@@ -1,8 +1,14 @@
 """
-TODO: Prologue comment placeholder
-    Due to grading criteria we probably need to split this into two files
-    To avoid merge conflicts with existing branches, I'm waiting until
-    later to do this -Kiara
+Module: MinesweeperGame
+Class: Game
+Description: Organizes and runs the Minesweeper game using Pygame.
+            Title screen, gameplay loop, rendering, and input handling.
+Inputs: User interaction via GUI.
+Outputs: Game window with interactive Minesweeper board.
+External Sources: None
+Authors: Kiara [Sam] Grimsley, Reeny Huang, Lauren D'Souza, Audrey Pan, Ella Nguyen, Hart Nurnberg
+Created: September 19, 2025 (original prototype August 25, 2025)
+Last Modified: September 19, 2025
 """
 
 import os
