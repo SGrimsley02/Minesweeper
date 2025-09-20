@@ -7,10 +7,9 @@ TODO: Prologue comment placeholder
 
 import random
 
-
 class Board:
     def __init__(self, width, height, num_mines):
-        """Take a width, height, and mine number to create a Minesweeper game."""
+        """Take a width, height, and mine number to create a Minesweeper game board."""
         self.width = width
         self.height = height
         self.num_mines = num_mines
@@ -90,7 +89,13 @@ class Board:
 
         self.flags_remaining += -1 if flag_status else 1
 
+    def is_revealed(self, x, y):
+        """True if square is revealed, false otherwise."""
+        return self.revealed[y][x]
 
+    def is_flagged(self, x, y):
+        """True if square is flagged, false otherwise."""
+        return self.flags[y][x]
 
     def is_game_over(self):
         """True if loss, false otherwise."""
@@ -106,15 +111,16 @@ class Board:
         for y in range(self.height):
             for x in range(self.width):
                 if self.revealed[y][x]:
-                    display_board[y].append(self.board[y][x])
+                    display_board[y].append(self.board[y][x]) # Revealed, number or mine
                 elif self.flags[y][x]:
-                    display_board[y].append("F")
+                    display_board[y].append("F") # Flagged
                 else:
-                    display_board[y].append("?")
+                    display_board[y].append("?") # Hidden
         return display_board
 
     #iterates through the board and reveals all squares with mines
     def reveal_all_mines(self):
+        """Reveal all mines on the board."""
         for y in range(self.height):
             for x in range(self.width):
                 if self.board[y][x] == -1:
