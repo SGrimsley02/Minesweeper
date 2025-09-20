@@ -186,7 +186,8 @@ class Game:
 
         # Gameplay loop
         while not self.quit:
-            pg.display.set_caption("Minesweeper -- Playing")
+            if not self.minesweeper.is_game_over() and not self.minesweeper.is_game_won():
+                pg.display.set_caption("Minesweeper -- Playing")
             w, h = screen.get_size()
             grid_size = min(w, h) * 0.8
             cell_size = int(grid_size // BOARD_WIDTH)
