@@ -95,14 +95,6 @@ class Board:
 
         self.flags_remaining += -1 if flag_status else 1
 
-    def is_revealed(self, x, y):
-        """True if square is revealed, false otherwise."""
-        return self.revealed[y][x]
-
-    def is_flagged(self, x, y):
-        """True if square is flagged, false otherwise."""
-        return self.flags[y][x]
-
     def is_game_over(self):
         """True if loss, false otherwise."""
         return self.game_over
