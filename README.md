@@ -63,11 +63,11 @@ Information contained:
 ### Meetings: https://sharing.clickup.com/9014997119/l/8cnbw3z-814/meetings
 This contains details of our meetings including sprint planning, stand ups, and meetings with GTA.
 
-> A spreadsheet of actual member hours including: coding, testing, documentation, and meetings is located in our docs folder.
+> A spreadsheet of actual member hours including: coding, testing, documentation, and meetings is located in our Documentation folder.
 
 
 ### System Architecture Overview 
-This documentation is inside the docs folder in our repo.
+This documentation is inside the Documentation folder in our repo.
 
 ## Contributors
 
