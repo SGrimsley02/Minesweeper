@@ -1,6 +1,7 @@
 # Minesweeper
 
 ## Description
+Minesweeper, a single-player puzzle game. Players interact with a 10x10 grid, uncovering cells to reveal numbers indicating adjacent mines while avoiding detonation. Players can flag suspected mine locations.
 
 Play Minesweeper with a fully interactive user interface. Choose between 10-20 mines on a 10x10 board.
 
@@ -11,8 +12,8 @@ Game is over when either a mine is revealed or all non-mines are revealed. Flags
 ## Requirements
 
 * Python 3 and pip
-* Pygame (see Installation instructions)
-* Pygame TextInput (see Installation instructions)
+* Pygame (see [Steps](#steps))
+* Pygame TextInput (see [Steps](#steps))
 
 ## Getting Started
 
@@ -20,27 +21,53 @@ Game is over when either a mine is revealed or all non-mines are revealed. Flags
 
 * Python 3 and pip
 
-### Installation
+### Steps
 
-Fork the repository into a folder of your choice and navigate there.
+1. Install the Prerequisites
+2. Clone/fork the repo
+3. cd into the repo and make a virtual enviornment with a Python 3.x.x interpreter
+4. Install Pygame TextInput 
+   
+   Run the following command:
+   
+   ```bash
+   pip install pygame pygame-textinput
+   ```
+   
+6. Run the 'Minesweeper.py' inside the Minesweeper folder to get started! Or run the following command from base folder:
 
-Create a new environment with a Python 3.x.x interpreter.
+   ```bash
+   python3 Minesweeper/PlayMinesweeper.py
+   ```
 
-Run the following command:
+5. An interactive Pygame window will popup  
 
-```bash
-pip install pygame pygame-textinput
-```
+   To start:  
+    * Type a number between 10-20 and hit enter
+    * Use left click to reveal grid
+    * Use right click to flag
 
-## Usage
 
-From the base folder, run the following command:
+## Documentations
 
-```bash
-python3 Minesweeper/PlayMinesweeper.py
-```
+### Sprint: https://sharing.clickup.com/9014997119/l/8cnbw3z-514/item-list
+This contains a list of tasks that were assigned to individuals.  
 
-This will generate a Pygame window which can be interacted with. To start, type a number between 10-20 and hit enter, starting the Minesweeper game. After that, left and right click to play.
+Information contained:  
+  * Task name and ID
+  * Assignee
+  * Time tracked (actual) and time estimated per task
+  * Sprint points assigned to either user story or independent tasks
+
+  
+### Meetings: https://sharing.clickup.com/9014997119/l/8cnbw3z-814/meetings
+This contains details of our meetings including sprint planning, stand ups, and meetings with GTA.
+
+> A spreadsheet of actual member hours including: coding, testing, documentation, and meetings is located in our Documentation folder.
+
+
+### System Architecture Overview 
+This documentation is inside the Documentation folder in our repo.
 
 ## Contributors
 
