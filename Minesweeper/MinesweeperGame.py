@@ -14,7 +14,7 @@ Last Modified: September 19, 2025
 import os
 import pygame as pg
 import pygame_textinput as textinput
-from MinesweeperBoard import Board
+from MinesweeperBoard import Minesweeper
 
 # Board layout (fixed 10x10)
 BOARD_WIDTH = 10
@@ -55,7 +55,7 @@ class Game:
 
     def start_game(self, width: int, height: int, num_mines: int):
         """Start a new minesweeper board with given width, height, and num_mines."""
-        self.minesweeper = Board(width, height, num_mines)
+        self.minesweeper = Minesweeper(width, height, num_mines)
         self.start_ticks = pg.time.get_ticks()  # milliseconds since pg.init()
         self.end_time = None
 
