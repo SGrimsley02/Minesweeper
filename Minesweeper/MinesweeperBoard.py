@@ -1,6 +1,6 @@
 """
 Module: MinesweeperBoard
-Class: Board
+Class: Minesweeper
 Description: Defines the Minesweeper game board and logic for placing mines,
                 revealing squares, toggling flags, and end conditions.
 Inputs: Width, height, and number of mines defining the initial board setup.
@@ -13,7 +13,7 @@ Last Modified: September 19, 2025
 
 import random
 
-class Board:
+class Minesweeper:
     def __init__(self, width, height, num_mines):
         """Take a width, height, and mine number to create a Minesweeper game board."""
         self.width = width
@@ -25,8 +25,6 @@ class Board:
         self.flags = [[False for _ in range(width)] for _ in range(height)]
         self.game_over = False
         self.mines_placed = False  # Flag to track if mines have been placed
-        self.start_ticks = None   # when the game actually starts
-        self.end_time = None      # frozen final time
 
     def place_mines(self, safe_x=None, safe_y=None):
         """Place mines, ensuring the first square is safe."""
